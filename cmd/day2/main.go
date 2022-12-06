@@ -12,6 +12,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("can't read file: %s", err))
 	}
+	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 

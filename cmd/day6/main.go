@@ -11,6 +11,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("can't read file: %s", err))
 	}
+	defer file.Close()
 
 	stream, err := io.ReadAll(file)
 	if err != nil {

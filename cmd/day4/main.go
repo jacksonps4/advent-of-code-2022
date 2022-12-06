@@ -13,6 +13,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("can't read file: %s", err))
 	}
+	defer file.Close()
 
 	ranges := make([]*sectionRangePair, 0)
 	scanner := bufio.NewScanner(file)
