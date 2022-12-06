@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -15,8 +16,16 @@ func main() {
 	}
 	defer file.Close()
 
-	ranges := make([]*sectionRangePair, 0)
+	ranges := parseSectionRanges(file)
+	containedCount, overlapCount := checkPairs(ranges)
+
+	fmt.Printf("Part 1: found %d fully contained regions\n", containedCount)
+	fmt.Printf("Part 2: found %d overlapping regions\n", overlapCount)
+}
+
+func parseSectionRanges(file io.Reader) []*sectionRangePair {
 	scanner := bufio.NewScanner(file)
+	ranges := make([]*sectionRangePair, 0)
 	for scanner.Scan() {
 		if scanner.Err() != nil {
 			panic(fmt.Sprintf("error reading: %s", scanner.Err()))
@@ -28,7 +37,14 @@ func main() {
 		}
 
 		first := strings.Split(values[0], "-")
+		if len(first) != 2 {
+			panic(fmt.Sprintf("invalid data in input file: found multiple pairs"))
+		}
+
 		second := strings.Split(values[1], "-")
+		if len(second) != 2 {
+			panic(fmt.Sprintf("invalid data in input file: found multiple pairs"))
+		}
 
 		start1, err := strconv.Atoi(first[0])
 		if err != nil {
@@ -54,39 +70,21 @@ func main() {
 			End2:   end2,
 		})
 	}
-
-	containedCount := findFullyContainedRegions(ranges)
-	fmt.Printf("Part 1: found %d fully contained regions\n", containedCount)
-
-	overlappingCount := findOverlappingRegions(ranges)
-	fmt.Printf("Part 2: found %d overlapping regions\n", overlappingCount)
+	return ranges
 }
 
-func findFullyContainedRegions(ranges []*sectionRangePair) int {
-	count := 0
+func checkPairs(ranges []*sectionRangePair) (int, int) {
+	containedCount := 0
+	overlapCount := 0
+
 	for _, r := range ranges {
-		if isContained(r) {
-			count++
+		if r.isContained() {
+			containedCount++
+		}
+		if r.overlaps() {
+			overlapCount++
 		}
 	}
-	return count
-}
 
-func findOverlappingRegions(ranges []*sectionRangePair) int {
-	count := 0
-	for _, r := range ranges {
-		if overlaps(r) {
-			count++
-			//fmt.Printf("%s\n", r)
-		}
-	}
-	return count
-}
-
-func isContained(r *sectionRangePair) bool {
-	return (r.Start1 <= r.Start2 && r.End1 >= r.End2) || (r.Start2 <= r.Start1 && r.End2 >= r.End1)
-}
-
-func overlaps(r *sectionRangePair) bool {
-	return r.Start2 <= r.End1 && r.End1 >= r.Start2
+	return containedCount, overlapCount
 }
